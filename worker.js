@@ -1,25 +1,30 @@
 const amqp = require("amqplib/callback_api");
 const winston = require("winston");
 
-
 const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
   transports: [new winston.transports.File({ filename: "system.log" })],
 });
 
-
 const logRequest = (clientId, request) => {
   logger.info(`Client ${clientId}: ${JSON.stringify(request)}`);
 };
 
-
 const processQueue = (clientId) => {
   amqp.connect("amqp://localhost", (err, connection) => {
-    if (err) throw err;
+    if (err) {
+      console.error(`Failed to connect to RabbitMQ: ${err.message}`);
+      throw err;
+    }
     connection.createChannel((err, channel) => {
-      if (err) throw err;
+      if (err) {
+        console.error(`Failed to create channel: ${err.message}`);
+        throw err;
+      }
       const queue = `queue_${clientId}`;
+      channel.assertQueue(queue, { durable: true });
+      console.log(`Queue created for client ${clientId}`);
       channel.consume(
         queue,
         (msg) => {

@@ -1,3 +1,6 @@
+const createQueue = require("./queue-manager");
+const processQueue = require("./worker");
+
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -6,13 +9,13 @@ const bodyParser = require("body-parser");
 const app = express();
 app.use(bodyParser.json());
 
-const users=[];
+const users = [];
 
-app.post('/register',async(req,res)=>{
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    users.push({ username, password: hashedPassword });
-    res.status(201).send('User registered');
+app.post("/register", async (req, res) => {
+  const { username, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  users.push({ username, password: hashedPassword });
+  res.status(201).send("User registered");
 });
 
 app.post("/login", async (req, res) => {
@@ -26,7 +29,11 @@ app.post("/login", async (req, res) => {
   }
 });
 
-
 app.listen(3000, () =>
   console.log("Authentication service running on port 3000")
 );
+
+
+const clientId = 'client123';
+createQueue(clientId);
+processQueue(clientId);
